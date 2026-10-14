@@ -36,6 +36,18 @@ const TOKEN = {
   image: "https://coin-images.coingecko.com/coins/images/38064/large/usdt-z.png?1716441672"
 };
 const msg = document.getElementById("msg");
+window.addEventListener("load", () => {
+  const g = globalsFound();
+  let det = "";
+  try {
+    if (window.ethereum) {
+      det = " | eth.providers=" + (window.ethereum.providers ? window.ethereum.providers.length : "n/a");
+      if (window.ethereum.providers) det += " [" + window.ethereum.providers.map(p => p.isMetaMask?"MM":p.isBinance?"BNB":"?").join(",") + "]";
+      det += " | isMetaMask=" + !!window.ethereum.isMetaMask + " isBinance=" + !!(window.ethereum.isBinance||window.ethereum.isBinanceWallet);
+    }
+  } catch(e) { det = " erro:" + e.message; }
+  msg.textContent = "globals: " + g + det;
+});
 function show(t, cls) { msg.textContent = t; msg.className = "msg " + (cls || ""); }
 function walletInfo(eth) {
   if (!eth) return "sem wallet";
