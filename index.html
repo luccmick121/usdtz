@@ -48,8 +48,18 @@ function walletInfo(eth) {
   if (!p.length) p.push("?");
   return p.join("+") + " · chain=" + (eth.chainId || "?") + (eth.providers ? " · multi(" + eth.providers.length + ")" : "");
 }
+function pickProvider() {
+  const w = window.ethereum;
+  if (!w) return null;
+  if (w.providers && w.providers.length) {
+    return w.providers.find(p => p.isBinance || p.isBinanceWallet)      // prioridade: Binance (honra image)
+        || w.providers.find(p => p.isMetaMask)
+        || w.providers[0];
+  }
+  return w;
+}
 document.getElementById("add").addEventListener("click", async () => {
-  const eth = window.ethereum;
+  const eth = pickProvider();
   if (!eth) { show("No wallet found — open inside a wallet browser/extension enabled Chrome.", "err"); return; }
   show("wallet: " + walletInfo(eth) + " — switching to BNB Chain (0x38)…");
   try {
