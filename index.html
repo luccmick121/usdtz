@@ -7,14 +7,14 @@
 <style>
   :root { color-scheme: dark; }
   body { margin:0; font-family: system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; background:#0e1116; color:#e8ecf1; display:flex; min-height:100vh; align-items:center; justify-content:center; }
-  .card { width:min(420px,92vw); background:#161b22; border:1px solid #232a33; border-radius:20px; padding:28px; text-align:center; }
+  .card { width:min(440px,92vw); background:#161b22; border:1px solid #232a33; border-radius:20px; padding:28px; text-align:center; }
   .logo { width:96px; height:96px; border-radius:50%; margin:0 auto 14px; display:block; border:2px solid #26A17B; }
   h1 { font-size:20px; margin:0 0 4px; }
   .sym { color:#8b949e; font-size:14px; margin-bottom:18px; }
   .addr { font-family:ui-monospace,Menlo,monospace; font-size:12px; color:#58a6ff; word-break:break-all; background:#0d1117; border:1px solid #21262d; border-radius:10px; padding:10px; margin-bottom:16px; }
   button { width:100%; padding:14px; font-size:16px; font-weight:600; border-radius:12px; border:0; cursor:pointer; background:#26A17B; color:#fff; }
   button:active { transform:scale(.98); }
-  .msg { font-size:13px; margin-top:12px; min-height:18px; color:#8b949e; }
+  .msg { font-size:12px; margin-top:12px; min-height:18px; color:#8b949e; word-break:break-word; text-align:left; }
   .ok { color:#3fb950; } .err { color:#f85149; }
 </style>
 </head>
@@ -36,18 +36,33 @@ const TOKEN = {
   image: "https://coin-images.coingecko.com/coins/images/38064/large/usdt-z.png?1716441672"
 };
 const msg = document.getElementById("msg");
+function show(t, cls) { msg.textContent = t; msg.className = "msg " + (cls || ""); }
+function walletInfo(eth) {
+  if (!eth) return "sem wallet";
+  const p = [];
+  if (eth.isMetaMask) p.push("MetaMask");
+  if (eth.isBinance || eth.isBinanceWallet) p.push("Binance");
+  if (eth.isOKXWallet) p.push("OKX");
+  if (eth.isRabby) p.push("Rabby");
+  if (eth.isCoinbaseWallet) p.push("Coinbase");
+  if (!p.length) p.push("?");
+  return p.join("+") + " · chain=" + (eth.chainId || "?") + (eth.providers ? " · multi(" + eth.providers.length + ")" : "");
+}
 document.getElementById("add").addEventListener("click", async () => {
   const eth = window.ethereum;
-  if (!eth) { msg.textContent = "No wallet found — open this page inside your wallet's dApp browser."; msg.className = "msg err"; return; }
-  try { await eth.request({ method: "wallet_switchEthereumChain", params: [{ chainId: "0x38" }] }); }
-  catch (e) { msg.textContent = "Could not switch to BNB Chain (56)."; msg.className = "msg err"; return; }
+  if (!eth) { show("No wallet found — open inside a wallet browser/extension enabled Chrome.", "err"); return; }
+  show("wallet: " + walletInfo(eth) + " — switching to BNB Chain (0x38)…");
+  try {
+    await eth.request({ method: "wallet_switchEthereumChain", params: [{ chainId: "0x38" }] });
+    show("wallet: " + walletInfo(eth) + " — rede BNB ok, pedindo watchAsset…");
+  } catch (e) {
+    show("switch falhou: " + (e.message || e) + " · wallet: " + walletInfo(eth), "err"); return;
+  }
   try {
     await eth.request({ method: "wallet_watchAsset", params: { type: "ERC20", options: TOKEN } });
-    msg.textContent = "USDT.z added — logo comes from the token's verified image.";
-    msg.className = "msg ok";
+    show("✅ USDT.z adicionado com logo! wallet: " + walletInfo(eth), "ok");
   } catch (e) {
-    msg.textContent = "Rejected or unsupported: " + (e && e.message ? e.message : e);
-    msg.className = "msg err";
+    show("watchAsset falhou: " + (e.message || e) + " · wallet: " + walletInfo(eth), "err");
   }
 });
 </script>
