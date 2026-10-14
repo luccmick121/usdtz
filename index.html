@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>USDT.z — Tether USD Bridged ZED20 (BEP20)</title>
+<style>
+  :root { color-scheme: dark; }
+  body { margin:0; font-family: system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; background:#0e1116; color:#e8ecf1; display:flex; min-height:100vh; align-items:center; justify-content:center; }
+  .card { width:min(420px,92vw); background:#161b22; border:1px solid #232a33; border-radius:20px; padding:28px; text-align:center; }
+  .logo { width:96px; height:96px; border-radius:50%; margin:0 auto 14px; display:block; border:2px solid #26A17B; }
+  h1 { font-size:20px; margin:0 0 4px; }
+  .sym { color:#8b949e; font-size:14px; margin-bottom:18px; }
+  .addr { font-family:ui-monospace,Menlo,monospace; font-size:12px; color:#58a6ff; word-break:break-all; background:#0d1117; border:1px solid #21262d; border-radius:10px; padding:10px; margin-bottom:16px; }
+  button { width:100%; padding:14px; font-size:16px; font-weight:600; border-radius:12px; border:0; cursor:pointer; background:#26A17B; color:#fff; }
+  button:active { transform:scale(.98); }
+  .msg { font-size:13px; margin-top:12px; min-height:18px; color:#8b949e; }
+  .ok { color:#3fb950; } .err { color:#f85149; }
+</style>
+</head>
+<body>
+<div class="card">
+  <img class="logo" alt="USDT.z" src="https://coin-images.coingecko.com/coins/images/38064/large/usdt-z.png?1716441672"
+       onerror="this.src='https://raw.githubusercontent.com/luccmick121/assets/master/blockchains/smartchain/assets/0x4BE31a5FBEEa7D73b59Ae538B56dAC7A60aB7Db4/logo.png'">
+  <h1>Tether USD Bridged ZED20</h1>
+  <div class="sym">USDT.z · BEP20 · BNB Smart Chain</div>
+  <div class="addr">0x4BE31a5FBEEa7D73b59Ae538B56dAC7A60aB7Db4</div>
+  <button id="add">Add to Wallet</button>
+  <div class="msg" id="msg"></div>
+</div>
+<script>
+const TOKEN = {
+  address: "0x4BE31a5FBEEa7D73b59Ae538B56dAC7A60aB7Db4",
+  symbol: "USDT.z",
+  decimals: 18,
+  image: "https://coin-images.coingecko.com/coins/images/38064/large/usdt-z.png?1716441672"
+};
+const msg = document.getElementById("msg");
+document.getElementById("add").addEventListener("click", async () => {
+  const eth = window.ethereum;
+  if (!eth) { msg.textContent = "No wallet found — open this page inside your wallet's dApp browser."; msg.className = "msg err"; return; }
+  try { await eth.request({ method: "wallet_switchEthereumChain", params: [{ chainId: "0x38" }] }); }
+  catch (e) { msg.textContent = "Could not switch to BNB Chain (56)."; msg.className = "msg err"; return; }
+  try {
+    await eth.request({ method: "wallet_watchAsset", params: { type: "ERC20", options: TOKEN } });
+    msg.textContent = "USDT.z added — logo comes from the token's verified image.";
+    msg.className = "msg ok";
+  } catch (e) {
+    msg.textContent = "Rejected or unsupported: " + (e && e.message ? e.message : e);
+    msg.className = "msg err";
+  }
+});
+</script>
+</body>
+</html>
