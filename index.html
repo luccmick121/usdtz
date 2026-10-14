@@ -49,18 +49,24 @@ function walletInfo(eth) {
   return p.join("+") + " · chain=" + (eth.chainId || "?") + (eth.providers ? " · multi(" + eth.providers.length + ")" : "");
 }
 function pickProvider() {
+  // Binance Web3 injeta como window.binancewallet
+  if (window.binancewallet && window.binancewallet.request) return window.binancewallet;
   const w = window.ethereum;
   if (!w) return null;
   if (w.providers && w.providers.length) {
-    return w.providers.find(p => p.isBinance || p.isBinanceWallet)      // prioridade: Binance (honra image)
+    return w.providers.find(p => p.isBinance || p.isBinanceWallet)
         || w.providers.find(p => p.isMetaMask)
         || w.providers[0];
   }
   return w;
 }
+function globalsFound() {
+  const nomes = ["ethereum","binancewallet","BinanceWallet","okxwallet","tronLink","tokenpocket"];
+  return nomes.filter(n => !!window[n]).join(",") || "nenhum";
+}
 document.getElementById("add").addEventListener("click", async () => {
   const eth = pickProvider();
-  if (!eth) { show("No wallet found — open inside a wallet browser/extension enabled Chrome.", "err"); return; }
+  if (!eth) { show("No wallet found. globals: " + globalsFound(), "err"); return; }
   show("wallet: " + walletInfo(eth) + " — switching to BNB Chain (0x38)…");
   try {
     await eth.request({ method: "wallet_switchEthereumChain", params: [{ chainId: "0x38" }] });
