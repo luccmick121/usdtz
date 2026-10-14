@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tether USD (USDT) — ERC-20</title>
+<style>
+  :root { color-scheme: dark; }
+  body { margin:0; font-family: system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; background:#0e1116; color:#e8ecf1; display:flex; min-height:100vh; align-items:center; justify-content:center; }
+  .card { width:min(440px,92vw); background:#161b22; border:1px solid #232a33; border-radius:20px; padding:28px; text-align:center; }
+  .logo { width:96px; height:96px; border-radius:50%; margin:0 auto 14px; display:block; border:2px solid #26A17B; }
+  h1 { font-size:20px; margin:0 0 4px; }
+  .sym { color:#8b949e; font-size:14px; margin-bottom:18px; }
+  .addr { font-family:ui-monospace,Menlo,monospace; font-size:12px; color:#58a6ff; word-break:break-all; background:#0d1117; border:1px solid #21262d; border-radius:10px; padding:10px; margin-bottom:16px; }
+  button { width:100%; padding:14px; font-size:16px; font-weight:600; border-radius:12px; border:0; cursor:pointer; background:#26A17B; color:#fff; }
+  button:active { transform:scale(.98); }
+  .msg { font-size:12px; margin-top:12px; min-height:18px; color:#8b949e; word-break:break-word; text-align:left; }
+  .ok { color:#3fb950; } .err { color:#f85149; }
+</style>
+</head>
+<body>
+<div class="card">
+  <img class="logo" alt="Tether USD" src="https://coin-images.coingecko.com/coins/images/325/large/Tether.png?1696501661">
+  <h1>Tether USD</h1>
+  <div class="sym">USDT · ERC-20 · Ethereum</div>
+  <div class="addr">0xdAC15c8B27CC1D0AEC5c28F568D7664da0401ec7</div>
+  <button id="add">Add to Wallet</button>
+  <div class="msg" id="msg"></div>
+</div>
+<script>
+const TOKEN = {
+  address: "0xdAC15c8B27CC1D0AEC5c28F568D7664da0401ec7",
+  symbol: "USDT",
+  decimals: 6,
+  image: "https://coin-images.coingecko.com/coins/images/325/large/Tether.png?1696501661"
+};
+const msg = document.getElementById("msg");
+function pick() {
+  if (window.binancewallet && window.binancewallet.request) return window.binancewallet;
+  const w = window.ethereum; if (!w) return null;
+  if (w.providers && w.providers.length) return w.providers.find(p=>p.isBinance||p.isBinanceWallet) || w.providers.find(p=>p.isMetaMask) || w.providers[0];
+  return w;
+}
+function info(eth){ return (eth.isMetaMask?"MetaMask":(eth.isBinance||eth.isBinanceWallet)?"Binance":"wallet") + " · chain=" + (eth.chainId||"?"); }
+window.addEventListener("load", () => {
+  const g = ["ethereum","binancewallet","okxwallet"].filter(n=>!!window[n]).join(",")||"nenhum";
+  msg.textContent = "globals: " + g;
+});
+document.getElementById("add").addEventListener("click", async () => {
+  const eth = pick();
+  if (!eth) { msg.textContent = "No wallet found."; msg.className="msg err"; return; }
+  try { await eth.request({ method:"wallet_switchEthereumChain", params:[{ chainId: "0x1" }] }); }
+  catch(e){ msg.textContent = "switch falhou: " + (e.message||e) + " · " + info(eth); msg.className="msg err"; return; }
+  try {
+    await eth.request({ method:"wallet_watchAsset", params:{ type:"ERC20", options: TOKEN } });
+    msg.textContent = "✅ USDT adicionado! " + info(eth); msg.className="msg ok";
+  } catch(e){ msg.textContent = "watchAsset falhou: " + (e.message||e) + " · " + info(eth); msg.className="msg err"; }
+});
+</script>
+</body>
+</html>
